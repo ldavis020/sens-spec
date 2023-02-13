@@ -1,17 +1,10 @@
 
 # -------------------------------------------------------------------------#
-## ------------ OBJECTIVE 3 - BIAS ANALYSIS FOR INCOME ------------------ ##
+## ------------ BIAS ANALYSIS MULTINOMIAL ------------------------------- ##
 ## --------- Model and calculate sensitivity and specificity ------------ ##
 # -------------------------------------------------------------------------#
 
-## get some fake date just to make sure 
-library(readxl)
-df <- read_excel("/Users/lauradavis/Library/CloudStorage/OneDrive-McGillUniversity/Documents/MCGILL/Thesis/RDC/Code/plco test1.xlsx")
-
-### set up library to call packages from the correct place 
-.libPaths(c("putpathhere"))
-
-# create some fake income quintiles 
+# create some fake quintiles 
 set.seed(1234)
 df$neighb <- sample(1:5, 1846, replace=TRUE, prob=c(0.2, 0.2, 0.2, 0.2, 0.2))
 df$neighb <- factor(df$neighb)
@@ -99,25 +92,6 @@ spq5 <- tnq5/(tnq5+fpq5)
 # confounders = rural residence, possibly age and sex 
 # -------------------------------------------------------------------------#
 
-# multinomial regression model; outcome=neighb; exposure=ind;
-# start with crude model and compare to hand calculations - should be the same 
-library(nnet)
-
-# choose level of outcome that is baseline = 5
-df$neighb2 <- relevel(df$neighb, ref=5)
-m1 <- multinom(neighb2~ind_1 + ind_2 + ind_3 + ind_4, data=df)
-summary(m1)
-fitted(m1)
-
-# calculate p-values using wald test (z test) 
-z <- summary(m1)$coefficients/summary(m1)$standard.errors
-# 2-tailed
-p <- (1-pnorm(abs(z),0,1))*2
-
-
-
-
-
 #### CALCULATE SENSITIVITY USING MODELS #### 
 ### use outcome = quintile of interest vs rest Q1 (i.e. use logistic regression)
 
@@ -126,11 +100,11 @@ mq1 <- glm(neighb_1 ~ ind_1 + ind_2 + ind_3 + ind_4, data=df, family='binomial')
 summary(mq1)
 coef_mq1 <- coef(mq1)
 coef_mq1
-# sensivity for Q1
+# sensivity for Q1 -- matches crude 
 m_seq1 <- (1) / (1+(exp(-(coef_mq1[1]+1*(coef_mq1[2]))))) 
 m_seq1
 seq1
-# specificity for Q1
+# specificity for Q1 -- doesn't match crude?
 m_spq1 <- (1 - ((1) / (1+(exp(-(coef_mq1[1]+0*(coef_mq1[2])+1*(coef_mq1[3])+1*(coef_mq1[4])+1*(coef_mq1[5])))))  ) )
 m_spq1
 spq1
@@ -139,7 +113,7 @@ spq1
 mq2 <- glm(neighb_2 ~ ind_1 + ind_2 + ind_3 + ind_4, data=df, family='binomial')
 summary(mq2)
 coef_mq2 <- coef(mq2)
-# sensitivity q2
+# sensitivity q2 -- matches crude 
 m_seq2 <- (1) / (1+(exp(-(coef_mq2[1]+1*(coef_mq2[3]))))) 
 m_seq2
 seq2
@@ -152,7 +126,7 @@ spq2
 mq3 <- glm(neighb_3 ~ ind_1 + ind_2 + ind_3 + ind_4, data=df, family='binomial')
 summary(mq3)
 coef_mq3 <- coef(mq3)
-# sensitivity q3
+# sensitivity q3 -- matches crude 
 m_seq3 <- (1) / (1+(exp(-(coef_mq3[1]+1*(coef_mq3[4]))))) 
 m_seq3
 seq3
@@ -165,7 +139,7 @@ spq3
 mq4 <- glm(neighb_4 ~ ind_1 + ind_2 + ind_3 + ind_4, data=df, family='binomial')
 summary(mq4)
 coef_mq4 <- coef(mq4)
-# sensitivity q4
+# sensitivity q4 -- matches crude 
 m_seq4 <- (1) / (1+(exp(-(coef_mq4[1]+1*(coef_mq4[5]))))) 
 m_seq4
 seq4
@@ -175,7 +149,7 @@ seq4
 mq5 <- glm(neighb_5 ~ ind_1 + ind_2 + ind_3 + ind_4, data=df, family='binomial')
 summary(mq5)
 coef_mq5 <- coef(mq5)
-# snesitivity q5
+# snesitivity q5 -- matches crude 
 m_seq5 <- (1) / (1+(exp(-(coef_mq5[1])))) 
 m_seq5
 seq5
